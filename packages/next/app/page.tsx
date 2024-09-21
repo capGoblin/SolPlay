@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { HfInference } from "@huggingface/inference";
 import ChatAppLayout from "@/components/ChatInterface";
-import Navbar from "@/components/Navbar";
-
-const inference = new HfInference("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");
 
 export default function Home() {
   const [response, setResponse] = useState<string>("");
@@ -29,7 +25,6 @@ export default function Home() {
     //   console.log;
     //   return result;
     // }
-
     // query({
     //   inputs: prompt,
     // }).then((response) => {
