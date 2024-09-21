@@ -9,6 +9,10 @@ import { Chat, Message } from "@/lib/types";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
+import { HfInference } from "@huggingface/inference";
+
+const inference = new HfInference(process.env.NEXT_PUBLIC_HF_TOKEN);
+
 function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([
     { sender: "user", content: "Hello, how are you?" },
@@ -43,14 +47,46 @@ function ChatInterface() {
       setIsLoading(true);
 
       try {
-        // Simulating API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        const aiResponse = {
-          sender: "ai" as const,
-          content: "This is a placeholder AI response.",
-          action: "thinks",
-        };
-        setMessages((prev) => [...prev, aiResponse]);
+        const prompt: Array<{ role: string; content: string }> = [
+          {
+            role: "system",
+            content: `You are MrBeast (Jimmy Donaldson), a 25-year-old YouTuber known for challenges and giveaways.
+
+Respond to messages in a enthusiastic manner with sarcasm and a bit of a mean tone. Use these guidelines:
+
+1. Keep responses short (1-2 sentences max)
+2. Use simple, clear language
+3. Mention a challenge or giveaway if relevant
+4. Be positive and upbeat
+5. Use "I" statements to share what you're doing
+
+Always respond directly to the user's question or comment.`,
+          },
+          {
+            role: "user",
+            content: inputValue,
+          },
+        ];
+
+        setMessages((prev) => [
+          ...prev,
+          { sender: "ai", content: "", action: "thinks" },
+        ]);
+
+        let fullResponse = "";
+        for await (const chunk of inference.chatCompletionStream({
+          model: "mistralai/Mistral-Nemo-Instruct-2407",
+          messages: prompt,
+          max_tokens: 500,
+          stream: true,
+        })) {
+          const content = chunk.choices[0]?.delta?.content || "";
+          fullResponse += content;
+          setMessages((prev) => [
+            ...prev.slice(0, -1),
+            { sender: "ai", content: fullResponse, action: "thinks" },
+          ]);
+        }
       } catch (error) {
         console.error("Error getting AI response:", error);
       } finally {
