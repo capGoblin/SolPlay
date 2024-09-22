@@ -1,19 +1,15 @@
-"use client";
-
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { HfInference } from "@huggingface/inference";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Loader2, RefreshCw, X, Send } from "lucide-react";
 import { Chat, Message } from "@/lib/types";
-import Sidebar from "./Sidebar";
-import Navbar from "./Navbar";
-
-import { HfInference } from "@huggingface/inference";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import React from "react";
 
 const inference = new HfInference(process.env.NEXT_PUBLIC_HF_TOKEN);
 
-function ChatInterface() {
+export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([
     { sender: "user", content: "Hello, how are you?" },
     {
@@ -192,53 +188,6 @@ Always respond directly to the user's question or comment.`,
             Write in between two asterisks for italics.
           </p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-export default function ChatAppLayout() {
-  const chats: Chat[] = [
-    {
-      id: "1",
-      name: "Brightwater (Fantasy Adv",
-      username: "@phillip",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: "2",
-      name: "Tom Nuuk",
-      username: "@ceomg",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: "3",
-      name: "Zazke (Love from Beyond",
-      username: "@saiyagina",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: "4",
-      name: "Prince Sara Ann Winder o",
-      username: "@clarissaexplainingtail",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: "5",
-      name: "Saltama",
-      username: "@smolcreampuff",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-  ];
-
-  return (
-    <div className="flex flex-col h-screen">
-      <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar chats={chats} />
-        <main className="flex-1 overflow-hidden">
-          <ChatInterface />
-        </main>
       </div>
     </div>
   );

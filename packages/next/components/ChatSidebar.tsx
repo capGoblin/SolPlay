@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PinIcon, Trash2 } from "lucide-react";
 import { Chat } from "@/lib/types";
 
-export default function Sidebar({ chats }: { chats: Chat[] }) {
+export default function ChatSidebar({ chats }: { chats: Chat[] }) {
   return (
     <div className="w-64 bg-gray-100 border-r border-gray-200 h-full overflow-y-auto">
       <h2 className="text-lg font-semibold p-4 text-gray-700">Chats</h2>

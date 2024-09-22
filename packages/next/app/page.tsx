@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ChatAppLayout from "@/components/ChatInterface";
+import Navbar from "@/components/Navbar";
 
 export default function Home() {
   const [response, setResponse] = useState<string>("");
@@ -34,7 +34,8 @@ export default function Home() {
 
   return (
     <div className="h-screen">
-      <ChatAppLayout />
+      <Navbar />
+      Landingpage
     </div>
   );
 }
