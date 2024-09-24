@@ -1,22 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PinIcon, Trash2 } from "lucide-react";
 import { Chat } from "@/lib/types";
 
-export default function ChatSidebar({ chats }: { chats: Chat[] }) {
+export default function ChatSidebar({
+  chats,
+  setSelectedChatId,
+  selectedChatId,
+}: {
+  chats: Chat[];
+  setSelectedChatId: (id: string) => void;
+  selectedChatId: string;
+}) {
+  const handleChatClick = (chatId: string) => {
+    setSelectedChatId(chatId);
+  };
+
   return (
     <div className="w-64 bg-gray-100 border-r border-gray-200 h-full overflow-y-auto">
       <h2 className="text-lg font-semibold p-4 text-gray-700">Chats</h2>
       <ul>
-        {chats.map((chat, index) => (
+        {chats.map((chat) => (
           <li
             key={chat.id}
-            className={`hover:bg-gray-200 transition-colors ${
-              index === chats.length - 1 ? "bg-gray-200" : ""
+            className={`hover:bg-gray-200 transition-colors cursor-pointer ${
+              selectedChatId === chat.id ? "bg-gray-200" : ""
             }`}
+            onClick={() => handleChatClick(chat.id)}
           >
-            <a href="#" className="flex items-center p-4 space-x-3">
+            <div className="flex items-center p-4 space-x-3">
               <Avatar>
                 <AvatarImage src={chat.avatar} alt={chat.name} />
                 <AvatarFallback>{chat.name[0]}</AvatarFallback>
@@ -29,7 +42,7 @@ export default function ChatSidebar({ chats }: { chats: Chat[] }) {
                   {chat.username}
                 </p>
               </div>
-              {index === chats.length - 1 && (
+              {selectedChatId === chat.id && (
                 <div className="flex space-x-1">
                   <Button variant="ghost" size="icon" className="h-8 w-8">
                     <PinIcon className="h-4 w-4" />
@@ -39,7 +52,7 @@ export default function ChatSidebar({ chats }: { chats: Chat[] }) {
                   </Button>
                 </div>
               )}
-            </a>
+            </div>
           </li>
         ))}
       </ul>

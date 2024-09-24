@@ -6,10 +6,15 @@ import { Chat, Message } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import React from "react";
+import { Draft } from "@/lib/types";
 
 const inference = new HfInference(process.env.NEXT_PUBLIC_HF_TOKEN);
 
-export default function ChatInterface() {
+interface ChatInterfaceProps {
+  chat?: Chat;
+  draft?: Draft;
+}
+export default function ChatInterface({ chat, draft }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([
     { sender: "user", content: "Hello, how are you?" },
     {
@@ -26,6 +31,16 @@ export default function ChatInterface() {
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
+
+  useEffect(() => {
+    setMessages([
+      {
+        sender: "ai",
+        content: "I'm doing well, thank you! How can I assist you today?",
+        action: "greets",
+      },
+    ]);
+  }, [draft, chat]);
 
   useEffect(() => {
     scrollToBottom();
@@ -46,7 +61,7 @@ export default function ChatInterface() {
         const prompt: Array<{ role: string; content: string }> = [
           {
             role: "system",
-            content: `You are MrBeast (Jimmy Donaldson), a 25-year-old YouTuber known for challenges and giveaways.
+            content: `You are ${chat?.description || draft?.description}.
 
 Respond to messages in a enthusiastic manner with sarcasm and a bit of a mean tone. Use these guidelines:
 
@@ -76,7 +91,13 @@ Always respond directly to the user's question or comment.`,
           max_tokens: 500,
           stream: true,
         })) {
-          const content = chunk.choices[0]?.delta?.content || "";
+          let content = chunk.choices[0]?.delta?.content || "";
+
+          const characterName =
+            chat?.name.replace(/\s+/g, "") || draft?.title.replace(/\s+/g, "");
+          const regex = new RegExp(`^${characterName}:\\s*`, "i");
+          content = content.replace(regex, "");
+
           fullResponse += content;
           setMessages((prev) => [
             ...prev.slice(0, -1),

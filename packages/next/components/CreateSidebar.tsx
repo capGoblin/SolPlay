@@ -5,24 +5,27 @@ import { PlusIcon, PencilIcon, TrashIcon, ShareIcon } from "lucide-react";
 import { CreateDialog } from "./CreateDialog";
 import { PublishDialog } from "./PublishDialog";
 import { EditDialog } from "./EditDialog";
-interface Draft {
-  id: string;
-  title: string;
-  avatar: string;
-}
+import { Draft } from "@/lib/types";
 
-export default function CreateSidebar() {
-  const [drafts, setDrafts] = useState<Draft[]>([
-    {
-      id: "1",
-      title: "Mr Beast",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-  ]);
+export default function CreateSidebar({
+  drafts,
+  setDrafts,
+  setSelectedDraftId,
+  selectedDraftId,
+}: {
+  drafts: Draft[];
+  setDrafts: (drafts: Draft[]) => void;
+  setSelectedDraftId: (draftId: string) => void;
+  selectedDraftId: string;
+}) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingDraft, setEditingDraft] = useState<Draft | null>(null);
+
+  const handleDraftClick = (draftId: string) => {
+    setSelectedDraftId(draftId);
+  };
 
   const handleCreate = () => {
     setIsCreateDialogOpen(true);
@@ -37,6 +40,7 @@ export default function CreateSidebar() {
       id: Date.now().toString(),
       title: character.name,
       avatar: "/placeholder.svg?height=32&width=32",
+      description: character.description,
     };
     setDrafts([...drafts, newDraft]);
   };
@@ -88,7 +92,13 @@ export default function CreateSidebar() {
       </div>
       <ul className="flex-1 overflow-y-auto">
         {drafts.map((draft) => (
-          <li key={draft.id} className="hover:bg-gray-200 transition-colors">
+          <li
+            key={draft.id}
+            className={`hover:bg-gray-200 transition-colors cursor-pointer ${
+              selectedDraftId === draft.id ? "bg-gray-200" : ""
+            }`}
+            onClick={() => handleDraftClick(draft.id)}
+          >
             <div className="flex items-center p-4 space-x-3">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={draft.avatar} alt={draft.title} />
@@ -99,30 +109,32 @@ export default function CreateSidebar() {
                   {draft.title}
                 </p>
               </div>
-              <div className="flex space-x-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleEdit(draft)}
-                >
-                  <PencilIcon className="h-4 w-4 text-gray-500" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleDelete(draft.id)}
-                >
-                  <TrashIcon className="h-4 w-4 text-gray-500" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <ShareIcon
-                    className="h-4 w-4 text-gray-500"
-                    onClick={() => setIsPublishDialogOpen(true)}
-                  />
-                </Button>
-              </div>
+              {selectedDraftId === draft.id && (
+                <div className="flex space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleEdit(draft)}
+                  >
+                    <PencilIcon className="h-4 w-4 text-gray-500" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleDelete(draft.id)}
+                  >
+                    <TrashIcon className="h-4 w-4 text-gray-500" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <ShareIcon
+                      className="h-4 w-4 text-gray-500"
+                      onClick={() => setIsPublishDialogOpen(true)}
+                    />
+                  </Button>
+                </div>
+              )}
             </div>
           </li>
         ))}
