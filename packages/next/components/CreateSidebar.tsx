@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,7 +9,7 @@ import { PublishDialog } from "./PublishDialog";
 import { EditDialog } from "./EditDialog";
 import { Draft } from "@/lib/types";
 
-export default function CreateSidebar({
+export default function Component({
   drafts,
   setDrafts,
   setSelectedDraftId,
@@ -77,14 +79,16 @@ export default function CreateSidebar({
   };
 
   return (
-    <div className="w-64 bg-gray-100 h-full flex flex-col border-r border-gray-200">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-700">Drafts</h2>
+    <div className="w-64 bg-black h-full flex flex-col border-r border-gray-800">
+      <div className="p-4 border-b border-gray-800">
+        <h2 className="text-lg font-semibold bg-gradient-to-r from-yellow-500 to-yellow-700 bg-clip-text text-transparent">
+          Drafts
+        </h2>
       </div>
       <div className="p-4">
         <Button
           onClick={handleCreate}
-          className="w-full flex items-center justify-center space-x-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+          className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-yellow-500 to-yellow-700 text-black hover:opacity-90"
         >
           <PlusIcon className="w-4 h-4" />
           <span>Create</span>
@@ -94,18 +98,25 @@ export default function CreateSidebar({
         {drafts.map((draft) => (
           <li
             key={draft.id}
-            className={`hover:bg-gray-200 transition-colors cursor-pointer ${
-              selectedDraftId === draft.id ? "bg-gray-200" : ""
+            className={`hover:bg-gray-900 transition-colors cursor-pointer ${
+              selectedDraftId === draft.id ? "bg-gray-900" : ""
             }`}
             onClick={() => handleDraftClick(draft.id)}
           >
             <div className="flex items-center p-4 space-x-3">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={draft.avatar} alt={draft.title} />
-                <AvatarFallback>{draft.title[0]}</AvatarFallback>
+              <Avatar className="border-2 border-transparent bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-[2px]">
+                <AvatarImage
+                  src={draft.avatar}
+                  alt={draft.title}
+                  className="rounded-full bg-black"
+                />
+                <AvatarFallback className="bg-black text-yellow-500 rounded-full">
+                  {draft.title[0]}
+                </AvatarFallback>
               </Avatar>
+
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-gray-300 truncate">
                   {draft.title}
                 </p>
               </div>
@@ -114,24 +125,26 @@ export default function CreateSidebar({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 text-gray-400 hover:text-yellow-500 hover:bg-gray-800"
                     onClick={() => handleEdit(draft)}
                   >
-                    <PencilIcon className="h-4 w-4 text-gray-500" />
+                    <PencilIcon className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 text-gray-400 hover:text-yellow-500 hover:bg-gray-800"
                     onClick={() => handleDelete(draft.id)}
                   >
-                    <TrashIcon className="h-4 w-4 text-gray-500" />
+                    <TrashIcon className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <ShareIcon
-                      className="h-4 w-4 text-gray-500"
-                      onClick={() => setIsPublishDialogOpen(true)}
-                    />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-400 hover:text-yellow-500 hover:bg-gray-800"
+                    onClick={() => setIsPublishDialogOpen(true)}
+                  >
+                    <ShareIcon className="h-4 w-4" />
                   </Button>
                 </div>
               )}

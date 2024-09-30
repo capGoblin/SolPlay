@@ -1,12 +1,13 @@
+"use client";
+
 import { HfInference } from "@huggingface/inference";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Loader2, RefreshCw, X, Send } from "lucide-react";
-import { Chat, Message } from "@/lib/types";
+import { Chat, Message, Draft } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import React from "react";
-import { Draft } from "@/lib/types";
 
 const inference = new HfInference(process.env.NEXT_PUBLIC_HF_TOKEN);
 
@@ -14,7 +15,8 @@ interface ChatInterfaceProps {
   chat?: Chat;
   draft?: Draft;
 }
-export default function ChatInterface({ chat, draft }: ChatInterfaceProps) {
+
+export default function Component({ chat, draft }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([
     { sender: "user", content: "Hello, how are you?" },
     {
@@ -110,7 +112,7 @@ Always respond directly to the user's question or comment.`,
         setIsLoading(false);
       }
     }
-  }, [inputValue]);
+  }, [inputValue, chat, draft]);
 
   const handleRegenerateResponse = useCallback(() => {
     console.log("Regenerating response");
@@ -122,31 +124,32 @@ Always respond directly to the user's question or comment.`,
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-black text-white">
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-3xl mx-auto">
           {messages.map((message, index) => (
             <React.Fragment key={index}>
               <div className="mb-4 flex items-start">
-                <Avatar className="mt-1 mr-4">
-                  <AvatarFallback>
+                <Avatar className="border-2 border-transparent bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-[2px]">
+                  <AvatarFallback className="bg-black text-yellow-500 rounded-full">
                     {message.sender === "user" ? "U" : "AI"}
                   </AvatarFallback>
                   {message.sender === "ai" && (
                     <AvatarImage
                       src="/placeholder.svg?height=40&width=40"
                       alt="AI"
+                      className="rounded-full bg-black"
                     />
                   )}
                 </Avatar>
                 <div className="flex-1">
                   {message.action && (
-                    <span className="text-sm italic text-gray-500">
+                    <span className="text-sm italic text-gray-400">
                       {message.action}{" "}
                     </span>
                   )}
                   <span
-                    className="text-sm text-gray-800"
+                    className="text-sm text-gray-300"
                     dangerouslySetInnerHTML={{
                       __html: formatMessage(message.content),
                     }}
@@ -154,21 +157,21 @@ Always respond directly to the user's question or comment.`,
                 </div>
               </div>
               {index < messages.length - 1 && (
-                <hr className="my-4 border-t border-gray-200" />
+                <hr className="my-4 border-t border-gray-800" />
               )}
             </React.Fragment>
           ))}
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <div className="p-4 border-t border-gray-200 bg-white">
+      <div className="p-4 border-t border-gray-800 bg-black">
         <div className="max-w-3xl mx-auto">
           <div className="flex justify-between mb-2">
             <Button
               onClick={handleRegenerateResponse}
               variant="outline"
               size="sm"
-              className="text-gray-700"
+              className="bg-gradient-to-r from-yellow-500 to-yellow-700 text-black border-none hover:opacity-90 transition-opacity duration-300"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Regenerate response
@@ -177,7 +180,7 @@ Always respond directly to the user's question or comment.`,
               onClick={handleClearChat}
               variant="outline"
               size="sm"
-              className="text-gray-700"
+              className="bg-gradient-to-r from-yellow-500 to-yellow-700 text-black border-none hover:opacity-90 transition-opacity duration-300"
             >
               <X className="mr-2 h-4 w-4" />
               Clear chat
@@ -190,11 +193,11 @@ Always respond directly to the user's question or comment.`,
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSend()}
               placeholder="Send a message..."
-              className="pr-10"
+              className="pr-10 bg-gray-900 text-white border border-gray-700 focus:border-yellow-600 focus:ring-1 focus:ring-yellow-600"
             />
             <Button
               onClick={handleSend}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 bg-gradient-to-r from-yellow-500 to-yellow-700 text-black border-none hover:opacity-90 transition-opacity duration-300"
               size="icon"
               disabled={isLoading}
             >
