@@ -18,7 +18,7 @@ export default function Navbar() {
   const router = useRouter();
 
   return (
-    <nav className="flex items-center justify-between p-4 bg-black text-gray-300">
+    <nav className="flex items-center justify-between p-4 border-b border-gray-800 bg-black text-gray-300">
       <div className="flex items-center space-x-4">
         <Link href="/" className="flex items-center space-x-2">
           <Sparkles className="h-6 w-6 text-yellow-500" />
@@ -34,6 +34,12 @@ export default function Navbar() {
         </Link>
         <Link href="/chat" className="hover:text-yellow-500 transition-colors">
           Chat
+        </Link>
+        <Link
+          href="/marketplace"
+          className="hover:text-yellow-500 transition-colors"
+        >
+          Marketplace
         </Link>
       </div>
       <DropdownMenu>

@@ -18,7 +18,7 @@ export default function ChatSidebar({
   };
 
   return (
-    <div className="w-64 bg-black h-full overflow-y-auto">
+    <div className="w-64 bg-black h-full overflow-y-auto border-r border-gray-800">
       <h2 className="text-lg font-semibold p-4 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent">
         Chats
       </h2>
