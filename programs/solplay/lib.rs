@@ -6,6 +6,7 @@ use std::mem::size_of;
 declare_id!("Br2jNdq8NZa8BQYbPcNXKHaM7MeXUanZe2WLNpSy8fHN");
 
 const PLATFORM_FEE: u64 = 1_000_000_000;
+// const PLATFORM_FEE: u64 = 100_000_000;
 const MONTH_IN_SECONDS: i64 = 30 * 24 * 60 * 60;
 
 #[program]
@@ -13,13 +14,19 @@ pub mod solplay {
     use super::*;
 
     // Bot creator registering a free bot
-    pub fn register_free_bot(ctx: Context<RegisterChatBot>, mints: u64, bot_id: String) -> Result<()> {
+    pub fn register_free_bot(
+        ctx: Context<RegisterChatBot>,
+        bot_id: String,
+        mints: u64,
+    ) -> Result<()> {
         let chat_bot_account = &mut ctx.accounts.chat_bot_account;
         let admin = &ctx.accounts.admin;
-        
+        let bot_creator = &ctx.accounts.bot_creator;
+
         chat_bot_account.mints = mints;
         chat_bot_account.premium = 0;
         chat_bot_account.admin = admin.key();
+        chat_bot_account.creator = bot_creator.key();
         chat_bot_account.bump = ctx.bumps.chat_bot_account;
         chat_bot_account.bot_id = bot_id;
 
@@ -44,16 +51,18 @@ pub mod solplay {
     // Bot creator registering a premium bot
     pub fn register_premium_bot(
         ctx: Context<RegisterChatBot>,
+        bot_id: String,
         mints: u64,
         premium: u64,
-        bot_id: String
     ) -> Result<()> {
         let chat_bot_account = &mut ctx.accounts.chat_bot_account;
         let admin = &ctx.accounts.admin;
+        let bot_creator = &ctx.accounts.bot_creator;
 
         chat_bot_account.mints = mints;
         chat_bot_account.premium = premium;
         chat_bot_account.admin = admin.key();
+        chat_bot_account.creator = bot_creator.key();
         chat_bot_account.bump = ctx.bumps.chat_bot_account;
         chat_bot_account.bot_id = bot_id;
 
@@ -78,9 +87,10 @@ pub mod solplay {
     }
 
     // End user registering to chat with bot (first time for premium)
-    pub fn register_for_chat(ctx: Context<RegisterForChat>) -> Result<()> {
+    pub fn register_for_chat(ctx: Context<RegisterForChat>, bot_id: String) -> Result<()> {
         let bot_user_account = &mut ctx.accounts.bot_user_account;
         let chat_bot_account = &ctx.accounts.chat_bot_account;
+        // let bot_creator = &mutctx.accounts.bot_creator;
 
         bot_user_account.bump = ctx.bumps.bot_user_account;
 
@@ -89,14 +99,14 @@ pub mod solplay {
 
             let sol_transfer = anchor_lang::solana_program::system_instruction::transfer(
                 &ctx.accounts.bot_user.key(),
-                &chat_bot_account.key(),
+                &ctx.accounts.bot_creator.key(),
                 premium,
             );
             anchor_lang::solana_program::program::invoke(
                 &sol_transfer,
                 &[
                     ctx.accounts.bot_user.to_account_info().clone(),
-                    chat_bot_account.to_account_info().clone(),
+                    ctx.accounts.bot_creator.to_account_info().clone(),
                     ctx.accounts.system_program.to_account_info().clone(),
                 ],
             )?;
@@ -110,7 +120,7 @@ pub mod solplay {
     }
 
     // End user makes monthly premium payment
-    pub fn make_premium_payment(ctx: Context<MakePremiumPayment>) -> Result<()> {
+    pub fn make_premium_payment(ctx: Context<MakePremiumPayment>, bot_id: String) -> Result<()> {
         let bot_user_account = &mut ctx.accounts.bot_user_account;
         let chat_bot_account = &ctx.accounts.chat_bot_account;
 
@@ -121,14 +131,14 @@ pub mod solplay {
 
         let sol_transfer = anchor_lang::solana_program::system_instruction::transfer(
             &ctx.accounts.bot_user.key(),
-            &chat_bot_account.key(),
+            &ctx.accounts.bot_creator.key(),
             premium,
         );
         anchor_lang::solana_program::program::invoke(
             &sol_transfer,
             &[
                 ctx.accounts.bot_user.to_account_info().clone(),
-                chat_bot_account.to_account_info().clone(),
+                ctx.accounts.bot_creator.to_account_info().clone(),
                 ctx.accounts.system_program.to_account_info().clone(),
             ],
         )?;
@@ -140,9 +150,7 @@ pub mod solplay {
     }
 
     // Public function to validate chat eligibility
-    pub fn validate_chat_eligibility(
-        ctx: Context<ValidateChatEligibility>
-    ) -> Result<()> {
+    pub fn validate_chat_eligibility(ctx: Context<ValidateChatEligibility>, bot_id: String) -> Result<()> {
         let bot_user_account = &ctx.accounts.bot_user_account;
         let chat_bot_account = &ctx.accounts.chat_bot_account;
 
@@ -178,8 +186,6 @@ pub struct RegisterChatBot<'info> {
 #[derive(Accounts)]
 #[instruction(bot_id: String)]
 pub struct RegisterForChat<'info> {
-    #[account(mut)]
-    pub bot_user: Signer<'info>,
     #[account(
         init,
         payer = bot_user,
@@ -188,29 +194,54 @@ pub struct RegisterForChat<'info> {
         bump,
     )]
     pub bot_user_account: Account<'info, BotUser>,
+    #[account(mut)]
+    pub bot_user: Signer<'info>,
+    #[account(
+        seeds = [b"chat_bot", bot_id.as_bytes().as_ref(), bot_creator.key().as_ref()],
+        bump = chat_bot_account.bump,
+    )]
     pub chat_bot_account: Account<'info, ChatBot>,
+    #[account(mut)]
+    pub bot_creator: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 #[instruction(bot_id: String)]
 pub struct MakePremiumPayment<'info> {
-    #[account(mut)]
-    pub bot_user: Signer<'info>,
     #[account(
         mut,
         seeds = [b"bot_user", bot_id.as_bytes().as_ref(), bot_user.key().as_ref()],
         bump = bot_user_account.bump,
     )]
     pub bot_user_account: Account<'info, BotUser>,
+    #[account(mut)]
+    pub bot_user: Signer<'info>,
+    #[account(
+        seeds = [b"chat_bot", bot_id.as_bytes().as_ref(), bot_creator.key().as_ref()],
+        bump = chat_bot_account.bump,
+    )]
     pub chat_bot_account: Account<'info, ChatBot>,
+    #[account(mut)]
+    pub bot_creator: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
+#[instruction(bot_id: String)]
 pub struct ValidateChatEligibility<'info> {
+    #[account(
+        seeds = [b"bot_user", bot_id.as_bytes().as_ref(), bot_user.key().as_ref()],
+        bump = bot_user_account.bump,
+    )]
     pub bot_user_account: Account<'info, BotUser>,
+    pub bot_user: AccountInfo<'info>,
+    #[account(
+        seeds = [b"chat_bot", bot_id.as_bytes().as_ref(), bot_creator.key().as_ref()],
+        bump = chat_bot_account.bump,
+    )]
     pub chat_bot_account: Account<'info, ChatBot>,
+    pub bot_creator: AccountInfo<'info>,
 }
 
 #[account]
