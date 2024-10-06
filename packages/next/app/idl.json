@@ -1,0 +1,245 @@
+{
+  "version": "0.1.0",
+  "name": "solplay",
+  "instructions": [
+    {
+      "name": "registerFreeBot",
+      "accounts": [
+        {
+          "name": "botCreator",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "chatBotAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "botId",
+          "type": "string"
+        },
+        {
+          "name": "mints",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "registerPremiumBot",
+      "accounts": [
+        {
+          "name": "botCreator",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "chatBotAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "botId",
+          "type": "string"
+        },
+        {
+          "name": "mints",
+          "type": "u64"
+        },
+        {
+          "name": "premium",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "registerForChat",
+      "accounts": [
+        {
+          "name": "botUserAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "botUser",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "chatBotAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "botCreator",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "botId",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "makePremiumPayment",
+      "accounts": [
+        {
+          "name": "botUserAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "botUser",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "chatBotAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "botCreator",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "botId",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "validateChatEligibility",
+      "accounts": [
+        {
+          "name": "botUserAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "botUser",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "chatBotAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "botCreator",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "botId",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ChatBot",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "botId",
+            "type": "string"
+          },
+          {
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "creator",
+            "type": "publicKey"
+          },
+          {
+            "name": "mints",
+            "type": "u64"
+          },
+          {
+            "name": "premium",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BotUser",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "expiration",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "NotPremiumBot",
+      "msg": "This bot is not a premium bot."
+    },
+    {
+      "code": 6001,
+      "name": "PremiumExpired",
+      "msg": "Premium subscription has expired."
+    }
+  ]
+}
