@@ -13,9 +13,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 export default function Navbar() {
   const router = useRouter();
+  const WalletMultiButtonDynamic = dynamic(
+    async () =>
+      (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+    { ssr: false }
+  );
 
   return (
     <nav className="flex items-center justify-between p-4 border-b border-gray-800 bg-black text-gray-300">
@@ -74,6 +80,10 @@ export default function Navbar() {
               </p>
             </div>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-gray-800" />
+          {/* <DropdownMenuItem className="hover:bg-gray-800 hover:text-yellow-500 focus:bg-gray-800 focus:text-yellow-500"> */}
+          <WalletMultiButtonDynamic />
+          {/* </DropdownMenuItem> */}
           <DropdownMenuSeparator className="bg-gray-800" />
           <DropdownMenuItem
             onClick={() => {
