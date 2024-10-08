@@ -37,12 +37,19 @@ export default function Component({
     name: string;
     description: string;
     greeting: string;
+    image: File | null;
+    nftName: string;
+    nftSymbol: string;
   }) => {
     const newDraft: Draft = {
       id: Date.now().toString(),
       title: character.name,
-      avatar: "/placeholder.svg?height=32&width=32",
+      avatar: character.image
+        ? URL.createObjectURL(character.image)
+        : "/placeholder.svg?height=32&width=32", // Updated to use character.image
       description: character.description,
+      nftName: character.nftName,
+      nftSymbol: character.nftSymbol,
     };
     setDrafts([...drafts, newDraft]);
   };

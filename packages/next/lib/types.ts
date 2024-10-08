@@ -24,4 +24,6 @@ export interface Draft {
   title: string;
   avatar: string;
   description: string;
+  nftName: string;
+  nftSymbol: string;
 }

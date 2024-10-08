@@ -21,6 +21,8 @@ export default function ChatAppLayout() {
       avatar: "/placeholder.svg?height=32&width=32",
       description:
         "Mr Beast is a larger-than-life YouTuber known for his extravagant challenges and giveaways. He is always enthusiastic and ready to entertain.",
+      nftName: "Mr Beast ",
+      nftSymbol: "MR.BEAST",
     },
   ]);
 
