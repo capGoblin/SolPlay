@@ -1,12 +1,31 @@
 use anchor_lang::prelude::*;
-use std::mem::size_of;
+use anchor_spl::token::Token;
+// use anchor_spl::associated_token::AssociatedToken;
+// use mpl_token_metadata::accounts::MasterEdition;
+// use mpl_token_metadata::accounts::Metadata;
+// use mpl_token_metadata::metadata;
+// use anchor_spl::metadata::Metadata as Metaplex;
+// use mpl_token_metadata::errors::MplTokenMetadataError;
+// use mpl_token_metadata::instructions::CreateCpiBuilder;
+use mpl_token_metadata::instructions::CreateV1CpiBuilder;
+use mpl_token_metadata::instructions::MintV1CpiBuilder;
+use mpl_token_metadata::types::{TokenStandard, PrintSupply, Creator};
+// use solana_program::system_program;
+// use anchor_spl::{
+//     associated_token::AssociatedToken,
+//     metadata::{
+//         create_metadata_accounts_v3, mpl_token_metadata::types::DataV2, CreateMetadataAccountsV3,
+//         Metadata as Metaplex,
+//     },
+//     token::{mint_to, Mint, MintTo, Token, TokenAccount},
+// };
 
-// use anchor_lang::solana_program::system_program;
+use std::mem::size_of;
 
 declare_id!("GqdmkZC5nqG8czabLKATHUJYVWkejqnZM2auAHUY6321");
 
-const PLATFORM_FEE: u64 = 1_000_000_000;
-// const PLATFORM_FEE: u64 = 100_000_000;
+// const PLATFORM_FEE: u64 = 1_000_000_000;
+const PLATFORM_FEE: u64 = 10_000_000;
 const MONTH_IN_SECONDS: i64 = 30 * 24 * 60 * 60;
 
 #[program]
@@ -17,6 +36,9 @@ pub mod solplay {
     pub fn register_free_bot(
         ctx: Context<RegisterChatBot>,
         bot_id: String,
+        name: String,
+        symbol: String,
+        uri: String,
         mints: u64,
     ) -> Result<()> {
         let chat_bot_account = &mut ctx.accounts.chat_bot_account;
@@ -45,6 +67,31 @@ pub mod solplay {
             ],
         )?;
 
+        CreateV1CpiBuilder::new(&ctx.accounts.token_metadata_program)
+            .metadata(&ctx.accounts.metadata)
+            .master_edition(Some(&ctx.accounts.master_edition))
+            .mint(&ctx.accounts.mint.to_account_info(), true)
+            .authority(&admin)
+            .payer(&bot_creator)
+            .update_authority(&bot_creator, true)
+            .creators(vec![Creator {
+                address: bot_creator.to_account_info().key.to_owned(),
+                verified: true,
+                share: 100,
+            }])
+            .name(name)
+            .uri(uri)
+            .symbol(symbol)
+            .token_standard(TokenStandard::FungibleAsset)
+            .decimals(0)
+            .print_supply(PrintSupply::Limited(mints))
+            .seller_fee_basis_points(500)
+            .system_program(&ctx.accounts.system_program)
+            .spl_token_program(Some(&ctx.accounts.token_program))
+            .sysvar_instructions(&ctx.accounts.sysvar_instructions)
+            .invoke()?;
+        // .invoke_signed(&signer);
+
         Ok(())
     }
 
@@ -52,6 +99,9 @@ pub mod solplay {
     pub fn register_premium_bot(
         ctx: Context<RegisterChatBot>,
         bot_id: String,
+        name: String,
+        symbol: String,
+        uri: String,
         mints: u64,
         premium: u64,
     ) -> Result<()> {
@@ -82,6 +132,31 @@ pub mod solplay {
                 ctx.accounts.system_program.to_account_info().clone(),
             ],
         )?;
+
+        CreateV1CpiBuilder::new(&ctx.accounts.token_metadata_program)
+            .metadata(&ctx.accounts.metadata)
+            .master_edition(Some(&ctx.accounts.master_edition))
+            .mint(&ctx.accounts.mint.to_account_info(), true)
+            .authority(&admin)
+            .payer(&bot_creator)
+            .update_authority(&bot_creator, true)
+            .creators(vec![Creator {
+                address: bot_creator.to_account_info().key.to_owned(),
+                verified: true,
+                share: 100,
+            }])
+            .name(name)
+            .uri(uri)
+            .symbol(symbol)
+            .token_standard(TokenStandard::FungibleAsset)
+            .decimals(0)
+            .print_supply(PrintSupply::Limited(mints))
+            .seller_fee_basis_points(500)
+            .system_program(&ctx.accounts.system_program)
+            .spl_token_program(Some(&ctx.accounts.token_program))
+            .sysvar_instructions(&ctx.accounts.sysvar_instructions)
+            .invoke()?;
+        // .invoke_signed(&signer);
 
         Ok(())
     }
@@ -115,6 +190,20 @@ pub mod solplay {
         } else {
             bot_user_account.expiration = 0;
         }
+
+        MintV1CpiBuilder::new(&ctx.accounts.token_metadata_program)
+            .metadata(&ctx.accounts.metadata)
+            .master_edition(Some(&ctx.accounts.master_edition))
+            .mint(&ctx.accounts.mint.to_account_info())
+            .authority(&ctx.accounts.admin)
+            .payer(&ctx.accounts.bot_user)
+            .token(&ctx.accounts.token_account)
+            .token_owner(Some(&ctx.accounts.bot_user))
+            .system_program(&ctx.accounts.system_program)
+            .spl_token_program(&ctx.accounts.token_program)
+            .spl_ata_program(&ctx.accounts.ata_program)
+            .sysvar_instructions(&ctx.accounts.sysvar_instructions)
+            .invoke()?;
 
         Ok(())
     }
@@ -150,7 +239,10 @@ pub mod solplay {
     }
 
     // Public function to validate chat eligibility
-    pub fn validate_chat_eligibility(ctx: Context<ValidateChatEligibility>, bot_id: String) -> Result<()> {
+    pub fn validate_chat_eligibility(
+        ctx: Context<ValidateChatEligibility>,
+        bot_id: String,
+    ) -> Result<()> {
         let bot_user_account = &ctx.accounts.bot_user_account;
         let chat_bot_account = &ctx.accounts.chat_bot_account;
 
@@ -178,9 +270,24 @@ pub struct RegisterChatBot<'info> {
         bump,
     )]
     pub chat_bot_account: Account<'info, ChatBot>,
-    #[account(signer)]
-    pub admin: AccountInfo<'info>,
+    // #[account(signer)]
+    pub admin: Signer<'info>,
+    #[account(mut)]
+    /// CHECK: UncheckedAccount
+    pub metadata: UncheckedAccount<'info>,
+    #[account(mut)]
+    /// CHECK: UncheckedAccount
+    pub master_edition: UncheckedAccount<'info>,
+    /// CHECK: Checking in program
+    #[account(mut)]
+    pub mint: Signer<'info>,
+    // pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    /// CHECK: Metaplex will check this
+    pub token_metadata_program: UncheckedAccount<'info>,
+    /// CHECK: Metaplex will check this
+    pub sysvar_instructions: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -201,9 +308,30 @@ pub struct RegisterForChat<'info> {
         bump = chat_bot_account.bump,
     )]
     pub chat_bot_account: Account<'info, ChatBot>,
+    /// CHECK: 
     #[account(mut)]
     pub bot_creator: AccountInfo<'info>,
+    pub admin: Signer<'info>,
+    /// CHECK: 
+    #[account(mut)]
+    pub token_account: AccountInfo<'info>,
+    #[account(mut)]
+    /// CHECK: UncheckedAccount
+    pub metadata: UncheckedAccount<'info>,
+    #[account(mut)]
+    /// CHECK: UncheckedAccount
+    pub master_edition: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub mint: Signer<'info>,
+    // pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
+    pub token_program: Program<'info, Token>,
+    /// CHECK: Metaplex will check this
+    pub ata_program: UncheckedAccount<'info>,
+    /// CHECK: Metaplex will check this
+    pub token_metadata_program: UncheckedAccount<'info>,
+    /// CHECK: Metaplex will check this
+    pub sysvar_instructions: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -222,6 +350,7 @@ pub struct MakePremiumPayment<'info> {
         bump = chat_bot_account.bump,
     )]
     pub chat_bot_account: Account<'info, ChatBot>,
+    /// CHECK: 
     #[account(mut)]
     pub bot_creator: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
@@ -235,12 +364,14 @@ pub struct ValidateChatEligibility<'info> {
         bump = bot_user_account.bump,
     )]
     pub bot_user_account: Account<'info, BotUser>,
+    /// CHECK: 
     pub bot_user: AccountInfo<'info>,
     #[account(
         seeds = [b"chat_bot", bot_id.as_bytes().as_ref(), bot_creator.key().as_ref()],
         bump = chat_bot_account.bump,
     )]
     pub chat_bot_account: Account<'info, ChatBot>,
+    /// CHECK: 
     pub bot_creator: AccountInfo<'info>,
 }
 
