@@ -8,7 +8,7 @@ SolPlay is a platform built on the Solana blockchain that allows content creator
   
 - **Multiple Monetization Channels**:
   - **Subscriptions**: Fans pay a monthly subscription to chat with exclusive AI characters created by the original creators.
-  - **NFTs**: Creators can mint and sell NFTs as access tokens for premium chatbot interactions, giving fans collectible ownership.
+  - **NFT-Gated Chatbots**: Creators can mint and sell NFTs as access tokens for premium chatbot interactions, giving fans collectible ownership.
   - **Marketplace Listings**: Users can trade these NFTs in the SolPlay marketplace, with creators earning from both primary and secondary sales.
 
 - **NFT Marketplace**: Built on Solana’s efficient blockchain, SolPlay allows for seamless minting, buying, and selling of NFTs. Fans can easily access premium chatbot interactions, and creators thrive in a low-cost, high-efficiency digital ecosystem.
